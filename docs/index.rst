@@ -9,4 +9,4 @@ TESS lightcurves.
 Reference/API
 =============
 
-.. automodapi:: corazon
+.. automodapi:: corazon.pipeline_search_vet
