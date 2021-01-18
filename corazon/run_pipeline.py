@@ -1,6 +1,7 @@
 import corazon.pipeline as pipeline
 from datetime import datetime
 import os
+from exovetter import vetters
 
 
 def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
