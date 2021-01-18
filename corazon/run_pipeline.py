@@ -2,6 +2,7 @@ import corazon.pipeline as pipeline
 from datetime import datetime
 import os
 
+
 def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
                run_tag = None, config_file = None):
     """
@@ -31,12 +32,12 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
         run_tag = now.strftime("crz%m%d%Y%H%M")
     
     if config_file is None:
-        config = pipeline.load_def_config()
+        config = load_def_config()
     else:
         print("Not implememted read in config file")
         #config = pipeline.load_config_file()
     
-    vetter_list = pipeline.load_def_vetter()
+    vetter_list = load_def_vetter()
     
     output_file = out_dir + run_tag + ".log"
     output_obj = open(output_file, 'w')
@@ -78,3 +79,42 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
         log_obj = open(log_name,'w+')
         log_obj.write("Failed to run this TIC ID.")
         log_obj.close() 
+
+
+def load_def_config():
+    """
+    Get the default configuration dictionary.
+    Returns
+    -------
+    config : dict
+       dictionary of default values that are required to run corazon pipeline
+
+    """
+    
+    config = dict()
+    
+    config = {
+        "det_window" : 65,
+        "noise_window" : 27,
+        "n_sigma" : 4.5,  #noise reject sigma
+        "max_period_days" : 10,
+        "min_period_days" : 0.8,
+        "bls_durs_hrs" : [1,2,4,8,12],
+        "minSnr" : [1],
+        "maxTces" : 20,
+        "fracRemain" : 0.7
+        }
+    
+    return config
+    
+def load_def_vetter():
+    """
+    Load default vetter list of vetters to run.
+    """
+    
+    vetter_list = [vetters.Lpp(),
+                   vetters.OddEven(),
+                   vetters.TransitPhaseCoverage(),
+                   vetters.Sweet()]
+    
+    return vetter_list

@@ -100,11 +100,11 @@ def search_and_vet_one(ticid, sector, lc_author, config, vetter_list, plot=True)
     tce_lc = lk.LightCurve(time=good_time, flux=meddet_flux+1,
                         time_format=lcformat, meta={'sector':sector})
     
-    result_strings, disp, reason, metrics_list = vet_all_tces(tce_lc, 
+    result_strings, disp, reason, metrics_list, tce_tces = vet_all_tces(tce_lc, 
                                                     tce_list, vetter_list,
                                                     plot=plot)
     
-    return tce_list, result_strings, metrics_list
+    return tce_list, result_strings, metrics_list, tce_tces
 
 
 def vet_tce(tce, tce_lc, vetter_list, plot=False):
