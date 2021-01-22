@@ -25,13 +25,13 @@ products from the MAST. It must be locally installed from git to run corazon.
 To run corazon on one target do the following
 
 ```
-from corazon import run_pipeline
-ticid = 383724012
-sector = 14
-outdir = "/Users/username/local/directory/to/store/output/"
-run_pipeline.run_write_one(ticid, sector, outdir)
+    from corazon import run_pipeline
+    ticid = 383724012
+    sector = 14
+    outdir = "/Users/username/local/directory/to/store/output/"
+    run_pipeline.run_write_one(ticid, sector, outdir)
 ```
 
 ```
-Authors:          Mullally, Susan
+    Authors:          Mullally, Susan
 ```
