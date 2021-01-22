@@ -1,8 +1,8 @@
 __all__ = ['search_and_vet_one', 'vet_tce','vet_all_tces','get_disposition',
            'load_def_config','load_def_vetter']
 
-import planetSearch as ps
-import gen_lightcurve as genlc
+import corazon.planetSearch as ps
+import corazon.gen_lightcurve as genlc
 import matplotlib.pyplot as plt
 import exovetter.tce as TCE
 import astropy.units as u
@@ -49,7 +49,8 @@ def load_def_vetter():
     return vetter_list
 
 
-def search_and_vet_one(ticid, sector, lc_author, config, vetter_list, plot=True):
+def search_and_vet_one(ticid, sector, lc_author, config, vetter_list,
+                       thresholds, plot=True):
     """
     Search and vet one ticid using config and vetter list
     
@@ -68,7 +69,13 @@ def search_and_vet_one(ticid, sector, lc_author, config, vetter_list, plot=True)
 
     Returns
     -------
-    None.
+    tce_tces : list
+        list of exovetter TCEs for this target
+    result_strings : str
+       string version of tce and decision
+      
+    metrics_list : list
+        all metrics, one per tce
 
     
     """
@@ -101,10 +108,11 @@ def search_and_vet_one(ticid, sector, lc_author, config, vetter_list, plot=True)
                         time_format=lcformat, meta={'sector':sector})
     
     result_strings, disp, reason, metrics_list, tce_tces = vet_all_tces(tce_lc, 
-                                                    tce_list, vetter_list,
+                                                    tce_list, ticid, 
+                                                    vetter_list, thresholds,
                                                     plot=plot)
     
-    return tce_list, result_strings, metrics_list, tce_tces
+    return tce_tces, result_strings, metrics_list
 
 
 def vet_tce(tce, tce_lc, vetter_list, plot=False):

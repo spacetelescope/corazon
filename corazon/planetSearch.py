@@ -9,7 +9,7 @@ Created on Sat Feb  9 16:47:22 2019
 from astropy.timeseries import BoxLeastSquares
 import numpy as np
 from astropy.convolution import convolve, Box1DKernel
-from plateau import plateau
+from corazon import plateau
 
 #import matplotlib.pyplot as plt
 
@@ -415,7 +415,7 @@ def findOutliers(time, flux, gap=None,
     #Find outliers as too far away from the mean.
     rms = robustStd(fluxDetrended[~gap])
     threshold_counts = threshold_sigma * rms / np.sqrt(2)
-    rawOutliers = plateau(np.fabs(fluxDetrended), threshold_counts)
+    rawOutliers = plateau.plateau(np.fabs(fluxDetrended), threshold_counts)
 
 
     if len(rawOutliers) == 0:
