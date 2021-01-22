@@ -109,7 +109,10 @@ def loadGapInfoBySector(time, sector):
         gaps |= (1738.65 >= time) 
         gaps |= (time >= 1763.31) # orbit range
         gaps |= (1750.25 <= time) & (time <= 1751.659) #inter sector gap
-        
+    elif sector == 26 :
+        gaps |= (2010.26209 >= time)
+        gaps |= (time >= 2035.1343)
+        gaps |= (2022.13982 <= time) & (time <= 2023.28936)        
 
 #        gaps |= (<= time) & (time <= )  #
 
