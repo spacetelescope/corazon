@@ -23,7 +23,7 @@ products from the MAST. It must be locally installed from git to run corazon.
 
 To run corazon on one target do the following:
 
-```
+```python
 from corazon import run_pipeline
 ticid = 383724012
 sector = 14
