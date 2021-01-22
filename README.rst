@@ -22,16 +22,16 @@ runs a box-least-squares fit search algorithm and vets the signal using
 This package depends on the next yet released (as of Jan 22, 2021) Lightkurve v2.0 (https://github.com/KeplerGO/lightkurve)to allow it to retrieve high-level-science
 products from the MAST. It must be locally installed from git to run corazon.
 
-To run corazon on one target do the following
+To run corazon on one target do the following:
 
-```
-    from corazon import run_pipeline
-    ticid = 383724012
-    sector = 14
-    outdir = "/Users/username/local/directory/to/store/output/"
-    run_pipeline.run_write_one(ticid, sector, outdir)
-```
+from corazon import run_pipeline
 
-```
-    Authors:          Mullally, Susan
-```
+ticid = 383724012
+
+sector = 14
+
+outdir = "/Users/username/local/directory/to/store/output/"
+
+run_pipeline.run_write_one(ticid, sector, outdir)
+
+
