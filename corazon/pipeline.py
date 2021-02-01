@@ -49,7 +49,7 @@ def load_def_vetter():
     return vetter_list
 
 
-def search_and_vet_one(ticid, sector, lc_author, config, vetter_list,
+def search_and_vet_one(ticid, sector, lc_author, local_dir, config, vetter_list,
                        thresholds, plot=True):
     """
     Search and vet one ticid using config and vetter list
@@ -79,7 +79,7 @@ def search_and_vet_one(ticid, sector, lc_author, config, vetter_list,
 
     
     """
-    lcdata = genlc.hlsp(ticid, sector, author='qlp')
+    lcdata = genlc.hlsp(ticid, sector, author='qlp',local_dir = local_dir)
     
     time = lcdata.time.value
     flux = lcdata.flux.value

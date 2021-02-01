@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 #sys.path[2] = '/Users/smullally/Python_Code/lightkurve/lightkurve'
 
 
-def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
+def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
                run_tag = None, config_file = None, plot=False):
     """
     Run the full bls search on a list of ticids stored in a file.
@@ -21,6 +21,9 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
         directory to store all the results. One dir per ticid will be created.
     lc_author : string
         'qlp' or 'tess-spoc'
+    local_dir : string
+        defaul is None and then pulls data from MAST API. Otherwise contains
+        directory name for the location of the data files.
     run_tag : string, optional
         directory name and string to attach to output file names. 
 
@@ -63,7 +66,7 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',
         
     try:
         tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, 
-                                sector, lc_author, config, 
+                                sector, lc_author, local_dir, config, 
                                 vetter_list, thresholds, plot=plot)
         
         if plot:
