@@ -13,11 +13,28 @@ on:
       - master
 
 jobs:
+  cancel_ci:
+    name: Mandatory checks before CI
+    runs-on: ubuntu-latest
+    outputs:
+      run_next: ${{ steps.skip_ci_step.outputs.run_next }}
+    steps:
+    - name: Check skip CI
+      uses: OpenAstronomy/action-skip-ci@main
+      id: skip_ci_step
+      with:
+        NO_FAIL: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The rest only run if above are done
+
   # Github Actions supports ubuntu, windows, and macos virtual environments:
   # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners
   ci_tests:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    needs: cancel_ci
+    if: needs.cancel_ci.outputs.run_next == 'true'
     strategy:
       matrix:
         include:
