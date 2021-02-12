@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 from exovetter import vetters
 import matplotlib.pyplot as plt
+import corazon.gen_lightcurve as genlc
 #sys.path[2] = '/Users/smullally/Python_Code/lightkurve/lightkurve'
 
 
@@ -65,8 +66,10 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
         log_obj.close()
         
     try:
+        
+        lcdata = genlc.hlsp(ticid, sector, author=lc_author,local_dir = local_dir)
         tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, 
-                                sector, lc_author, local_dir, config, 
+                                sector, lcdata, config, 
                                 vetter_list, thresholds, plot=plot)
         
         if plot:
