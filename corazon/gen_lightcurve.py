@@ -35,7 +35,7 @@ def eleanor_corr(ticid, sector, pxsize = 19):
     return data.time, data.corr_flux, data.quality
 
 
-def hlsp(ticid, sector, author="tess-spoc"):
+def hlsp(ticid, sector, author="tess-spoc", local_dir = None):
     """
     
 
@@ -48,6 +48,8 @@ def hlsp(ticid, sector, author="tess-spoc"):
     author : string, OPTIONAL
         options include tess-spoc and tess-qlp.
         The default is "tess-spoc".
+    loocaldir : string
+        local directory to read from None: Default
 
     Returns
     -------
@@ -58,9 +60,26 @@ def hlsp(ticid, sector, author="tess-spoc"):
     
     #print(f'TIC {ticid}')
     
-    lc = lk.search_lightcurve(f"TIC {ticid}", sector=sector,
+    if local_dir is None:
+    
+        lc = lk.search_lightcurve(f"TIC {ticid}", sector=sector,
                               cadence="ffi",author=author).download()
+    else:
+        
+        filename  = get_hlsp_filename(ticid, sector, author)
+        
+        lc = lk.io.read(local_dir + "/" + filename)
+    
     
     return lc
     
+
+def get_hlsp_filename(ticid, sector, author):
     
+    if author == "tess-spoc":
+        filename = "hlsp_tess-spoc_tess_phot_%016u-s%04u_tess_v1_lc.fits" % (ticid, sector)
+        
+    if author == "qlp":
+        filename = "hlsp_qlp_tess_ffi_s%04u-%016u_tess_v01_llc.fits" % (sector,ticid)
+    
+    return filename

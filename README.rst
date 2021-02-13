@@ -35,3 +35,7 @@ outdir = "/Users/username/local/directory/to/store/output/"
 run_pipeline.run_write_one(ticid, sector, outdir)
 
 
+If you are getting the data from a local directory, do the followingg
+local_dir - "/Users/username/local/directory/of/data/files"
+
+run_pipeline.run_write_one(ticid, sector, outdir, local_dir)
