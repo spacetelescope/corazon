@@ -80,9 +80,9 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list,
     
     """
     
-    time = lcdata.time.value
-    flux = lcdata.flux.value
-    flags = lcdata.quality.value
+    time = lcdata['time'].value
+    flux = lcdata['flux'].value
+    flags = lcdata['quality']
 
     good_time, meddet_flux = ps.clean_timeseries(time, flux, flags,
                                           config["det_window"], 
@@ -102,7 +102,7 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list,
     if plot:
         plot_lc_tce(ticid, tce_list, time, flux, good_time, meddet_flux, stats)
     
-    lcformat = lcdata.time.format
+    lcformat = lcdata['time'].format
     tce_lc = lk.LightCurve(time=good_time, flux=meddet_flux+1,
                         time_format=lcformat, meta={'sector':sector})
     
@@ -185,7 +185,7 @@ def make_result_string(tce, disposition, reason):
 
 
 def vet_all_tces(lc, tce_dict_list, ticid, vetter_list, thresholds, plot=False):
-    lcformat = lc.time.format
+    lcformat = lc['time'].format
     disp_list = []
     reason_list = []
     result_list = []

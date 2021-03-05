@@ -83,14 +83,27 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
             output_obj.write(r)
     
         output_obj.close()
-    
+        
+        #Write TCEs
         for tce in tce_list:
             tcefilename = "tic%09i-%02i-%s.json" % (ticid, 
                                                     int(tce['event']), 
                                                     run_tag)
     
             full_filename = out_dir + target_dir + tcefilename
+            tce['lc_author'] = lc_author
             tce.to_json(full_filename)
+            
+        #Write metrics    
+        #print(metrics_list)
+        #for i, metric in enumerate(metrics_list):
+        #    metricfilename = "tic%09i-%02i-%s-vetting.json" % (ticid, 
+        #                                            i+1, run_tag)
+        #    full_filename = out_dir + target_dir + metricfilename
+        #    thejson = json.dumps(metric)
+        #    mobj = open(full_filename,'w+')
+        #    mobj.write(thejson)
+        #    mobj.close()
  
 
         log_obj = open(log_name, 'w+')
@@ -137,7 +150,8 @@ def load_def_vetter():
     vetter_list = [vetters.Lpp(),
                    vetters.OddEven(),
                    vetters.TransitPhaseCoverage(),
-                   vetters.Sweet()]
+                   vetters.Sweet(),
+                   vetters.ModShift()]
     
     return vetter_list
 
