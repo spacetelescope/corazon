@@ -119,10 +119,15 @@ def vet_tce(tce, tce_lc, vetter_list, plot=False):
     metrics = dict()
     for v in vetter_list:
         vetter = v
-        _ = vetter.run(tce, tce_lc)
+        
+        try:
+            _ = vetter.run(tce, tce_lc)
+        except ValueError:
+            pass
         if plot:
             vetter.plot()
         metrics.update(vetter.__dict__)
+        
     return metrics
 
 def get_disposition(metrics, thresholds):

@@ -36,7 +36,7 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     
     if run_tag is None:
         now = datetime.now()
-        run_tag = now.strftime("crz%m%d%Y")
+        run_tag = now.strftime("crz%m%d%Y") + "_"+lc_author
     
     if config_file is None:
         config = load_def_config()
@@ -112,7 +112,7 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
 
     except Exception as e:
         log_obj = open(log_name,'w+')
-        log_obj.write("Failed to create TCEs for TIC %i for Sector %i" % (ticid, sector))
+        log_obj.write("Failed to create TCEs for TIC %i for Sector %i \n" % (ticid, sector))
         log_obj.write(str(e))
         log_obj.close() 
 
@@ -150,8 +150,7 @@ def load_def_vetter():
     vetter_list = [vetters.Lpp(),
                    vetters.OddEven(),
                    vetters.TransitPhaseCoverage(),
-                   vetters.Sweet(),
-                   vetters.ModShift()]
+                   vetters.Sweet()]
     
     return vetter_list
 
