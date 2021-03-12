@@ -129,12 +129,12 @@ def load_def_config():
     config = dict()
     
     config = {
-        "det_window" : 65,
-        "noise_window" : 27,
-        "n_sigma" : 4.5,  #noise reject sigma
+        "det_window" : 85,  #window used for smoothing
+        "noise_window" : 17, #window used for running outlier rejection
+        "n_sigma" : 5,  #noise/outlier reject sigma
         "max_period_days" : 10,
         "min_period_days" : 0.8,
-        "bls_durs_hrs" : [1,2,4,8,12],
+        "bls_durs_hrs" : [1,2,4,8,12,16],
         "minSnr" : [1],
         "maxTces" : 20,
         "fracRemain" : 0.7
