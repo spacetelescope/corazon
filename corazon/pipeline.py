@@ -100,7 +100,8 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list,
                                       maxP=config["max_period_days"])
     
     if plot:
-        plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, meddet_flux, stats)
+        plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, 
+                    meddet_flux, stats, sector)
     
     lcformat = lcdata['time'].format
     tce_lc = lk.LightCurve(time=good_time, flux=meddet_flux+1,
@@ -224,13 +225,14 @@ def vet_all_tces(lc, tce_dict_list, ticid, vetter_list, thresholds, plot=False):
     return result_list, disp_list, reason_list, metrics_list, tce_list
 
     
-def plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, good_flux, stats):
+def plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, 
+                good_flux, stats, sector):
     col = ['tab:orange','tab:green','tab:purple','tab:brown',
                'gold','magenta','lightpink']
     plt.figure(figsize=(10,6))
     plt.subplot(211)
     plt.plot(good_time, good_flux,'.')
-    plt.title("Lightcurve for TIC %i" % int(ticid))
+    plt.title("Lightcurve for TIC %i in S%i" % (int(ticid), int(sector)))
    
     axes = plt.gca()
     y_min, y_max = axes.get_ylim()
@@ -241,7 +243,7 @@ def plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, good_flux, stats)
     plt.legend()
     plt.subplot(212)
     plt.plot(time, flux,'.', label="original lc")
-    plt.plot(time[flags!=0], flux[flags!=0],'o', ms=4, label='flagged')
+    plt.plot(time[flags!=0], flux[flags!=0],'o', ms=3, label='flagged')
     plt.legend()
     plt.xlim(x_min, x_max)
 

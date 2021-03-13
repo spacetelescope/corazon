@@ -68,6 +68,9 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     try:
         
         lcdata = genlc.hlsp(ticid, sector, author=lc_author,local_dir = local_dir)
+        if lc_author == 'qlp':
+            lcdata['quality'] = lcdata['quality'].value & 2237
+         
         tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, 
                                 sector, lcdata, config, 
                                 vetter_list, thresholds, plot=plot)
@@ -129,12 +132,12 @@ def load_def_config():
     config = dict()
     
     config = {
-        "det_window" : 85,  #window used for smoothing
-        "noise_window" : 17, #window used for running outlier rejection
-        "n_sigma" : 5,  #noise/outlier reject sigma
-        "max_period_days" : 10,
+        "det_window" : 95,  #window used for detrending
+        "noise_window" : 19, #window used for running outlier rejection
+        "n_sigma" : 4.5,  #noise/outlier reject sigma
+        "max_period_days" : 11,
         "min_period_days" : 0.8,
-        "bls_durs_hrs" : [1,2,4,8,12,16],
+        "bls_durs_hrs" : [1,2,4,8,12,14],
         "minSnr" : [1],
         "maxTces" : 20,
         "fracRemain" : 0.7
