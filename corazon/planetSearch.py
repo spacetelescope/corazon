@@ -23,9 +23,9 @@ def clean_timeseries(time, flux, qflags, det_window, noise_window, n_sigma, sect
     flagged = bad | qbad | tgaps  #Indicate bad data
     med_det = median_detrend(flux[~flagged], det_window)
     det_time = time[~flagged]
-    
-    #Look for 3 bad sections on length of around 2 days (window = 90)
-    std_bad, med_std = running_std_gap(med_det, 70, N=3, nSigTimes=4.5)
+
+    #Look for extra noisy section on length of around 1.5 days (window = 90)
+    std_bad, med_std = running_std_gap(med_det, 70, N=2, nSigTimes=5)
     #print(len(std_bad[std_bad]))
     
     
@@ -101,7 +101,8 @@ def loadGapInfoBySector(time, sector):
         #gaps |= (1517 <= time) & (time <= 1491.62) # orbit range
         gaps |= (1502.5 <= time) & (time <= 1505.01) #inter sector gap
     elif sector == 14:
-        gaps = gaps
+        gaps |= (1696.2 <= time) & (time <= 1697.2) #inter sector gap
+        #gaps |= gaps
     elif sector == 15:
         gaps |= (1723.25 <= time) & (time <= 1725.6)
         gaps |= (1736.01 <= time)
@@ -112,7 +113,7 @@ def loadGapInfoBySector(time, sector):
     elif sector == 26 :
         gaps |= (2010.26209 >= time)
         gaps |= (time >= 2035.1343)
-        gaps |= (2022.13982 <= time) & (time <= 2023.28936)        
+        gaps |= (2021.482 <= time) & (time <= 2023.28936)        
 
 #        gaps |= (<= time) & (time <= )  #
 

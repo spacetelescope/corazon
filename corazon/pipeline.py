@@ -80,9 +80,9 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list,
     
     """
     
-    time = lcdata.time.value
-    flux = lcdata.flux.value
-    flags = lcdata.quality.value
+    time = lcdata['time'].value
+    flux = lcdata['flux'].value
+    flags = lcdata['quality'].value
 
     good_time, meddet_flux = ps.clean_timeseries(time, flux, flags,
                                           config["det_window"], 
@@ -100,9 +100,10 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list,
                                       maxP=config["max_period_days"])
     
     if plot:
-        plot_lc_tce(ticid, tce_list, time, flux, good_time, meddet_flux, stats)
+        plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, 
+                    meddet_flux, stats, sector)
     
-    lcformat = lcdata.time.format
+    lcformat = lcdata['time'].format
     tce_lc = lk.LightCurve(time=good_time, flux=meddet_flux+1,
                         time_format=lcformat, meta={'sector':sector})
     
@@ -119,10 +120,15 @@ def vet_tce(tce, tce_lc, vetter_list, plot=False):
     metrics = dict()
     for v in vetter_list:
         vetter = v
-        _ = vetter.run(tce, tce_lc)
+        
+        try:
+            _ = vetter.run(tce, tce_lc)
+        except ValueError:
+            pass
         if plot:
             vetter.plot()
         metrics.update(vetter.__dict__)
+        
     return metrics
 
 def get_disposition(metrics, thresholds):
@@ -185,7 +191,7 @@ def make_result_string(tce, disposition, reason):
 
 
 def vet_all_tces(lc, tce_dict_list, ticid, vetter_list, thresholds, plot=False):
-    lcformat = lc.time.format
+    lcformat = lc['time'].format
     disp_list = []
     reason_list = []
     result_list = []
@@ -219,23 +225,27 @@ def vet_all_tces(lc, tce_dict_list, ticid, vetter_list, thresholds, plot=False):
     return result_list, disp_list, reason_list, metrics_list, tce_list
 
     
-def plot_lc_tce(ticid, tce_list, time, flux, good_time, good_flux, stats):
+def plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, 
+                good_flux, stats, sector):
     col = ['tab:orange','tab:green','tab:purple','tab:brown',
                'gold','magenta','lightpink']
     plt.figure(figsize=(10,6))
     plt.subplot(211)
     plt.plot(good_time, good_flux,'.')
-    plt.title("Lightcurve for TIC %i" % int(ticid))
+    plt.title("Lightcurve for TIC %i in S%i" % (int(ticid), int(sector)))
    
     axes = plt.gca()
     y_min, y_max = axes.get_ylim()
+    x_min, x_max = axes.get_xlim()
     for n,s in enumerate(stats):
         plt.vlines(stats[n]['transit_times'], y_min, y_max, 
                    colors=col[n], zorder=1, label=str(n+1))
     plt.legend()
     plt.subplot(212)
     plt.plot(time, flux,'.', label="original lc")
+    plt.plot(time[flags!=0], flux[flags!=0],'o', ms=3, label='flagged')
     plt.legend()
+    plt.xlim(x_min, x_max)
 
 def open_output_file(filename, headerlist, thresholds):
     fobj = open(filename, 'a')

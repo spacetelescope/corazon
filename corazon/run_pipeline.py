@@ -36,7 +36,7 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     
     if run_tag is None:
         now = datetime.now()
-        run_tag = now.strftime("crz%m%d%Y")
+        run_tag = now.strftime("crz%m%d%Y") + "_"+lc_author
     
     if config_file is None:
         config = load_def_config()
@@ -68,6 +68,9 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     try:
         
         lcdata = genlc.hlsp(ticid, sector, author=lc_author,local_dir = local_dir)
+        if lc_author == 'qlp':
+            lcdata['quality'] = lcdata['quality'].value & 2237
+         
         tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, 
                                 sector, lcdata, config, 
                                 vetter_list, thresholds, plot=plot)
@@ -83,14 +86,27 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
             output_obj.write(r)
     
         output_obj.close()
-    
+        
+        #Write TCEs
         for tce in tce_list:
             tcefilename = "tic%09i-%02i-%s.json" % (ticid, 
                                                     int(tce['event']), 
                                                     run_tag)
     
             full_filename = out_dir + target_dir + tcefilename
+            tce['lc_author'] = lc_author
             tce.to_json(full_filename)
+            
+        #Write metrics    
+        #print(metrics_list)
+        #for i, metric in enumerate(metrics_list):
+        #    metricfilename = "tic%09i-%02i-%s-vetting.json" % (ticid, 
+        #                                            i+1, run_tag)
+        #    full_filename = out_dir + target_dir + metricfilename
+        #    thejson = json.dumps(metric)
+        #    mobj = open(full_filename,'w+')
+        #    mobj.write(thejson)
+        #    mobj.close()
  
 
         log_obj = open(log_name, 'w+')
@@ -99,7 +115,7 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
 
     except Exception as e:
         log_obj = open(log_name,'w+')
-        log_obj.write("Failed to create TCEs for TIC %i for Sector %i" % (ticid, sector))
+        log_obj.write("Failed to create TCEs for TIC %i for Sector %i \n" % (ticid, sector))
         log_obj.write(str(e))
         log_obj.close() 
 
@@ -116,12 +132,12 @@ def load_def_config():
     config = dict()
     
     config = {
-        "det_window" : 65,
-        "noise_window" : 27,
-        "n_sigma" : 4.5,  #noise reject sigma
-        "max_period_days" : 10,
+        "det_window" : 95,  #window used for detrending
+        "noise_window" : 19, #window used for running outlier rejection
+        "n_sigma" : 4.5,  #noise/outlier reject sigma
+        "max_period_days" : 11,
         "min_period_days" : 0.8,
-        "bls_durs_hrs" : [1,2,4,8,12],
+        "bls_durs_hrs" : [1,2,4,8,12,14],
         "minSnr" : [1],
         "maxTces" : 20,
         "fracRemain" : 0.7
