@@ -24,8 +24,8 @@ def clean_timeseries(time, flux, qflags, det_window, noise_window, n_sigma, sect
     med_det = median_detrend(flux[~flagged], det_window)
     det_time = time[~flagged]
 
-    #Look for 3 bad sections on length of around 2 days (window = 90)
-    std_bad, med_std = running_std_gap(med_det, 90, N=1, nSigTimes=4.5)
+    #Look for extra noisy section on length of around 1.5 days (window = 90)
+    std_bad, med_std = running_std_gap(med_det, 70, N=2, nSigTimes=5)
     #print(len(std_bad[std_bad]))
     
     
