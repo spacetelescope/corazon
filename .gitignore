@@ -59,3 +59,8 @@ pip-wheel-metadata/
 
 # Mac OSX
 .DS_Store
+
+local-files
+input-files
+output-files
+38venv
