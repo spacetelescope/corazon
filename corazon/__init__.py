@@ -4,3 +4,6 @@ try:
     from .version import version as __version__
 except ImportError:
     __version__ = ''
+
+from . import gen_lightcurve  # noqa
+from . import pipeline
