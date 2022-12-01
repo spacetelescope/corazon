@@ -124,6 +124,7 @@ def vet_tce(tce, tce_lc, vetter_list, plot=False):
         try:
             _ = vetter.run(tce, tce_lc)
         except ValueError:
+            print('Did not Vet')
             pass
         if plot:
             vetter.plot()
@@ -136,13 +137,16 @@ def get_disposition(metrics, thresholds):
     
     disp = 'PASS' 
     reason = ''
+    import ipdb
+    ipdb.set_trace()
+
     if metrics['snr'] < thresholds['snr']:
         disp = 'FAIL'
         reason = reason + "-LowSNR-"
     if metrics['norm_lpp'] > thresholds['norm_lpp']:
         disp = 'FAIL'
         reason = reason + "-NormLPP-"
-    if metrics['tp_cover'] < thresholds['tp_cover']:
+    if metrics['transit_phase_coverage'] < thresholds['transit_phase_coverage']:
         disp = 'FAIL'
         reason = reason + "-PoorTransitCoverage-"
     if metrics['oe_sigma'] > thresholds['oe_sigma']:
