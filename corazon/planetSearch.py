@@ -118,7 +118,9 @@ def loadGapInfoBySector(time, sector):
 #        gaps |= (<= time) & (time <= )  #
 
     else:
-        raise ValueError("No gap info available for sector %i" %(sector))
+        gaps = gaps
+    # else:
+    #     raise ValueError("No gap info available for sector %i" %(sector))
 
     return gaps
     
