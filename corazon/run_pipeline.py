@@ -86,20 +86,19 @@ def run_write_one(ticid, s3_location, sector, out_dir, lc_author = 'TGLC', confi
             plt.close()
         
         with fs.open(output_file, 'w') as fp: 
+            fp.write('Target, BLS_event, Sector, BLS_period, BLS_epoch, BLS_depth, BLS_duration, BLS_snr, LEO_MES, LEO_SHP, LEO_CHI, LEO_med_chases, LEO_mean_chases, LEO_max_SES, LEO_DMM, SWEET_halfperiod, SWEET_period, SWEET_2period, transit_phase_coverage\n')
             for i,r in enumerate(result_strings):
-                newstr = ", %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n" % (metrics_list[i]['MES'],
+                newstr = ", %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n" % (metrics_list[i]['MES'],
                                            metrics_list[i]['SHP'],
                                            metrics_list[i]['CHI'],
                                            metrics_list[i]['med_chases'],
-                                           metrics_list[i]['mean_chases'],
                                            metrics_list[i]['mean_chases'],
                                            metrics_list[i]['max_SES'],
                                            metrics_list[i]['DMM'],
                                            metrics_list[i]['amp'][2][0], # last array in Sweet (amplitude to uncertainty ratio): half-period
                                            metrics_list[i]['amp'][2][1], # period
                                            metrics_list[i]['amp'][2][2], # twice the period
-                                           metrics_list[i]['transit_phase_coverage'],
-                                           metrics_list[i]['snr'])
+                                           metrics_list[i]['transit_phase_coverage'])
                 newr = r[:-1]+newstr
                 fp.write(newr)
         

@@ -35,4 +35,13 @@ def tglc_from_S3(s3_location):
     if len(lc['flux'][idx]) == 0:
         lc = lk.io.tglc.read_tglc_lightcurve(s3_location, flux_column='CAL_APER_FLUX') 
 
+    # Then remove nans
+    lc = lc[~np.isnan(lc["flux"])]
+
+    # These calibrated fluxes have nans in the error arrays so replace them with 0s:
+    # lc['flux_err'] = 0
+
+    # This is done later but possible could remove outliers at this high level
+    #lc = lc.remove_outliers(sigma_lower=8, sigma_upper=4)
+
     return lc

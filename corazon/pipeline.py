@@ -60,11 +60,14 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list, plot=True):
     
     if plot:
         # plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, meddet_flux, stats, sector)
-        plot_lc_tce(ticid, time, flux, good_time, meddet_flux, flags, stats, sector)
+        plot_lc_tce(ticid, time, flux, good_time, meddet_flux+1, flags, stats, sector)
     
     lcformat = lcdata['time'].format
     tce_lc = lk.LightCurve(time=good_time, flux=meddet_flux+1, time_format=lcformat, meta={'sector':sector})
+    tce_lc['flux_err'] = 0 # These calibrated fluxes have nans in the error arrays so replace them with 0s:
     
+    tce_lc.to_fits(path="./test_lc.fits", overwrite=True) # Uncomment if you want to save the actually searched lightcurve (the cleaned TGLC one)
+
     result_strings, metrics_list, tce_tces = vet_all_tces(tce_lc, tce_list, ticid, vetter_list, plot=False)
     
     return tce_tces, result_strings, metrics_list
@@ -85,9 +88,8 @@ def vet_all_tces(lc, tce_dict_list, ticid, vetter_list, plot=False):
                       sector = lc.sector,
                       event = f"{pn}")
 
-        metrics = vet_tce(tce, lc, vetter_list, plot=plot) # dictionary of all vetting metrics
 
-        metrics['snr'] = tce['snr']
+        metrics = vet_tce(tce, lc, vetter_list, plot=plot) # dictionary of all vetting metrics
 
         result_string = make_result_string(tce)
 
