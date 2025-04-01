@@ -52,7 +52,7 @@ def tglc_from_S3(s3_location):
     # Then remove nans
     lc = lc[~np.isnan(lc["flux"])]
 
-    # This is done later but possible could remove outliers at this high level
-    #lc = lc.remove_outliers(sigma_lower=8, sigma_upper=4)
+    # Assign quality flags based only on TGLC column 
+    lc['quality'] = lc['tglc_flags']
 
     return lc

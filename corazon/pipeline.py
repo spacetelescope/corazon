@@ -43,11 +43,7 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list, plot=True):
     flux = lcdata['flux'].value
     flags = lcdata['quality'].value
 
-    good_time, meddet_flux = ps.clean_timeseries(time, flux, flags,
-                                          config["det_window"], 
-                                          config["noise_window"], 
-                                          config["n_sigma"], 
-                                          sector)
+    good_time, meddet_flux = ps.clean_timeseries(time, flux, flags, sector)
         
     # Run BLS
     tce_list, stats = ps.identifyTces(good_time, meddet_flux, 
@@ -59,7 +55,6 @@ def search_and_vet_one(ticid, sector, lcdata, config, vetter_list, plot=True):
                                       maxP=config["max_period_days"])
     
     if plot:
-        # plot_lc_tce(ticid, tce_list, time, flux, flags, good_time, meddet_flux, stats, sector)
         plot_lc_tce(ticid, time, flux, good_time, meddet_flux+1, flags, stats, sector)
     
     lcformat = lcdata['time'].format
@@ -148,7 +143,7 @@ def make_result_string(tce):
     
 def plot_lc_tce(ticid, time, flux, cleaned_time, cleaned_flux, flags, stats, sector):
     col = ['tab:orange','tab:green','tab:purple','tab:brown', 'gold','magenta','lightpink']
-    fig, (ax1,ax2,ax3) = plt.subplots(nrows=3,ncols=1,figsize=(10,9))
+    fig, (ax1,ax2,ax3) = plt.subplots(nrows=3,ncols=1,figsize=(10,9), sharex=True)
     
     
     ax1.plot(time, flux, label='Original lc', color='tab:red')

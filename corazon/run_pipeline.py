@@ -47,6 +47,8 @@ def run_write_one(ticid, s3_location, sector, out_dir, lc_author = 'TGLC', confi
     
     if config_file is None:
         config = load_def_config()
+    else:
+        config = config_file
     
     if not local:
         fs = s3fs.S3FileSystem(anon=False, profile="default")
@@ -134,10 +136,8 @@ def load_def_config():
     
     config = dict()
     
+    # Here were the inherited defaults
     config = {
-        "det_window" : 95,  #window used for detrending
-        "noise_window" : 19, #window used for running outlier rejection
-        "n_sigma" : 4.5,  #noise/outlier reject sigma
         "max_period_days" : 11,
         "min_period_days" : 0.8,
         "bls_durs_hrs" : [1,2,4,8,12,14],
