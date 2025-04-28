@@ -137,8 +137,8 @@ def get_disposition(metrics, thresholds):
     
     disp = 'PASS' 
     reason = ''
-    import ipdb
-    ipdb.set_trace()
+    #import ipdb
+    #ipdb.set_trace()
 
     if metrics['snr'] < thresholds['snr']:
         disp = 'FAIL'
@@ -146,21 +146,24 @@ def get_disposition(metrics, thresholds):
     if metrics['norm_lpp'] > thresholds['norm_lpp']:
         disp = 'FAIL'
         reason = reason + "-NormLPP-"
-    if metrics['transit_phase_coverage'] < thresholds['transit_phase_coverage']:
-        disp = 'FAIL'
-        reason = reason + "-PoorTransitCoverage-"
+    #if metrics['transit_phase_coverage'] < thresholds['transit_phase_coverage']:
+    #    disp = 'FAIL'
+    #    reason = reason + "-PoorTransitCoverage-"
+    #if metrics['chases_rubble_frac'] < 0.5:
+    #    disp = 'FAIL'
+    #    reason = reason + "--ChasesLow--"
     if metrics['oe_sigma'] > thresholds['oe_sigma']:
         disp = 'FAIL'
         reason = reason + "-OddEvenDetected-"
-    if metrics['sweet']['amp'][0, -1] > thresholds['sweet']:
-        disp = 'FAIL'
-        reason = reason + "-SWEETHalfPeriod"
-    if metrics['sweet']['amp'][1, -1] > thresholds['sweet']:
-        disp = 'FAIL'
-        reason = reason + "-SWEETAtPeriod"
-    if metrics['sweet']['amp'][2,-1] > thresholds['sweet']:
-        disp = 'FAIL'
-        reason = reason + "-SWEETTwicePeriod-"
+    #if metrics['sweet']['amp'][0, -1] > thresholds['sweet']:
+    #    disp = 'FAIL'
+    #    reason = reason + "-SWEETHalfPeriod"
+    #if metrics['sweet']['amp'][1, -1] > thresholds['sweet']:
+    #    disp = 'FAIL'
+    #    reason = reason + "-SWEETAtPeriod"
+    #if metrics['sweet']['amp'][2,-1] > thresholds['sweet']:
+    #    disp = 'FAIL'
+    #    reason = reason + "-SWEETTwicePeriod-"
     
     
     return disp,reason
@@ -236,14 +239,14 @@ def plot_lc_tce(ticid, tce_list, time, flux, flags, good_time,
     plt.figure(figsize=(10,6))
     plt.subplot(211)
     plt.plot(good_time, good_flux,'.')
-    plt.title("Lightcurve for TIC %i in S%i" % (int(ticid), int(sector)))
+    plt.title("Searched Lightcurve for TIC %i in S%i" % (int(ticid), int(sector)))
    
     axes = plt.gca()
     y_min, y_max = axes.get_ylim()
     x_min, x_max = axes.get_xlim()
     for n,s in enumerate(stats):
         plt.vlines(stats[n]['transit_times'], y_min, y_max, 
-                   colors=col[n], zorder=1, label=str(n+1))
+                   colors=col[n], zorder=1, label="PN %s" % str(n+1))
     plt.legend()
     plt.subplot(212)
     plt.plot(time, flux,'.', label="original lc")

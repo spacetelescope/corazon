@@ -119,6 +119,70 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
         log_obj.write(str(e))
         log_obj.close() 
 
+def run_one(ticid, sector, lc_author = 'qlp', data_dir=None,
+               run_tag = None, config_file = None, plot=False):
+    """
+    Run the full bls search on a a single light curve given a ticid, sector and lc_author.
+    Return the information about the TCEs found.
+
+    Parameters
+    ----------
+    ticid : int
+       tess input catalog number
+    sector : int
+       tess sector to search
+    lc_author : string
+        'qlp' or 'tess-spoc'
+    data_dir : string
+        Directory or cloud s3 bucket of the data if opening directly
+    run_tag : string, optional
+        directory name and string to attach to output file names. 
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    if run_tag is None:
+        now = datetime.now()
+        run_tag = now.strftime("crz%m%d%Y") + "_"+lc_author
+    
+    if config_file is None:
+        config = load_def_config()
+    else:
+        print("Not implememted read in config file")
+        #config = pipeline.load_config_file()
+    
+    vetter_list = load_def_vetter()
+    thresholds = load_def_thresholds()
+    
+    try:
+        
+        lcdata = genlc.hlsp(ticid, sector, author=lc_author,local_dir = data_dir)
+        if lc_author == 'qlp':
+            lcdata['quality'] = lcdata['quality'].value & 2237
+         
+        tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, 
+                                sector, lcdata, config, 
+                                vetter_list, thresholds, plot=plot)
+        
+
+    except Exception as e:
+        resultd = dict()
+        resultd['status'] = "error"
+        resultd['error'] = e
+        return resultd
+
+    resultsd = dict()
+    resultsd['status'] = "success"
+    resultsd['tce_list'] = tce_list
+    resultsd['result_strings'] = result_strings
+    resultsd['metrics_list'] = metrics_list
+
+    return resultsd
+
+
 def load_def_config():
     """
     Get the default configuration dictionary.
@@ -134,10 +198,10 @@ def load_def_config():
     config = {
         "det_window" : 95,  #window used for detrending
         "noise_window" : 19, #window used for running outlier rejection
-        "n_sigma" : 4.5,  #noise/outlier reject sigma
-        "max_period_days" : 11,
-        "min_period_days" : 0.8,
-        "bls_durs_hrs" : [1,2,4,8,12,14],
+        "n_sigma" : 7,  #noise/outlier reject sigma
+        "max_period_days" : 12,
+        "min_period_days" : 0.55,
+        "bls_durs_hrs" : [1,2,4,8,10],
         "minSnr" : [1],
         "maxTces" : 20,
         "fracRemain" : 0.7
@@ -153,7 +217,9 @@ def load_def_vetter():
     vetter_list = [vetters.Lpp(),
                    vetters.OddEven(),
                    vetters.TransitPhaseCoverage(),
-                   vetters.Sweet()]
+                   vetters.Sweet(),
+                   #vetters.LeoTransitEvents()
+                   ]
     
     return vetter_list
 
