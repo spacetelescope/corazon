@@ -4,11 +4,14 @@ import os
 from exovetter import vetters
 import matplotlib.pyplot as plt
 import corazon.gen_lightcurve as genlc
+import s3fs
+import json
+from fsspec.implementations.local import LocalFileSystem
+from astropy.utils.misc import JsonCustomEncoder
 #sys.path[2] = '/Users/smullally/Python_Code/lightkurve/lightkurve'
 
 
-def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
-               run_tag = None, config_file = None, plot=False):
+def run_write_one(ticid, s3_location, sector, out_dir, lc_author = 'TGLC', config_file = None, run_tag = None, local=True, plot=False):
     """
     Run the full bls search on a list of ticids stored in a file.
 
@@ -16,18 +19,22 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     ----------
     ticid : int
        tess input catalog number
+    s3_location : str
+        string of MAST s3 location of TGLC lightcurve
     sector : int
-       tess sector to search
+       tess sector of the data being used
     out_dir : string
         directory to store all the results. One dir per ticid will be created.
     lc_author : string
-        'qlp' or 'tess-spoc'
-    local_dir : string
-        defaul is None and then pulls data from MAST API. Otherwise contains
-        directory name for the location of the data files.
+        Currently using TGLC lightcurves
+    config_file : Dictionary
+        Dictionary of gapping values
     run_tag : string, optional
         directory name and string to attach to output file names. 
-
+    local : bool
+        Specifies the file system to use
+    plot : bool
+        create plot of the pre and post cleaned lightcurve corazon ran on
     Returns
     -------
     None.
@@ -41,11 +48,14 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     if config_file is None:
         config = load_def_config()
     else:
-        print("Not implememted read in config file")
-        #config = pipeline.load_config_file()
+        config = config_file
     
-    vetter_list = load_def_vetter()
-    thresholds = load_def_thresholds()
+    if not local:
+        fs = s3fs.S3FileSystem(anon=False, profile="default")
+    else:
+        fs = LocalFileSystem()
+
+    vetter_list = [vetters.LeoTransitEvents(), vetters.Sweet(), vetters.TransitPhaseCoverage()]
     
     
     target_dir = "/tic%09is%02i/" % (int(ticid), sector)
@@ -67,25 +77,32 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
         
     try:
         
-        lcdata = genlc.hlsp(ticid, sector, author=lc_author,local_dir = local_dir)
-        if lc_author == 'qlp':
-            lcdata['quality'] = lcdata['quality'].value & 2237
-         
-        tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, 
-                                sector, lcdata, config, 
-                                vetter_list, thresholds, plot=plot)
+        lcdata = genlc.tglc_from_S3(s3_location)
         
+        tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, sector, lcdata, config, vetter_list, plot=plot)
+
         if plot:
             plotfilename = "tic%09i-%s-plot.png" % (ticid, 
                                                     run_tag)
             plt.savefig(out_dir + target_dir + plotfilename, bbox_inches='tight')
             plt.close()
         
-        output_obj = open(output_file, 'w')
-        for r in result_strings:
-            output_obj.write(r)
-    
-        output_obj.close()
+        with fs.open(output_file, 'w') as fp: 
+            fp.write('Target, BLS_event, Sector, BLS_period, BLS_epoch, BLS_depth, BLS_duration, BLS_snr, LEO_MES, LEO_SHP, LEO_CHI, LEO_med_chases, LEO_mean_chases, LEO_max_SES, LEO_DMM, SWEET_halfperiod, SWEET_period, SWEET_2period, transit_phase_coverage\n')
+            for i,r in enumerate(result_strings):
+                newstr = ", %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n" % (metrics_list[i]['MES'],
+                                           metrics_list[i]['SHP'],
+                                           metrics_list[i]['CHI'],
+                                           metrics_list[i]['med_chases'],
+                                           metrics_list[i]['mean_chases'],
+                                           metrics_list[i]['max_SES'],
+                                           metrics_list[i]['DMM'],
+                                           metrics_list[i]['amp'][2][0], # last array in Sweet (amplitude to uncertainty ratio): half-period
+                                           metrics_list[i]['amp'][2][1], # period
+                                           metrics_list[i]['amp'][2][2], # twice the period
+                                           metrics_list[i]['transit_phase_coverage'])
+                newr = r[:-1]+newstr
+                fp.write(newr)
         
         #Write TCEs
         for tce in tce_list:
@@ -95,29 +112,17 @@ def run_write_one(ticid, sector, out_dir, lc_author = 'qlp',local_dir = None,
     
             full_filename = out_dir + target_dir + tcefilename
             tce['lc_author'] = lc_author
-            tce.to_json(full_filename)
-            
-        #Write metrics    
-        #print(metrics_list)
-        #for i, metric in enumerate(metrics_list):
-        #    metricfilename = "tic%09i-%02i-%s-vetting.json" % (ticid, 
-        #                                            i+1, run_tag)
-        #    full_filename = out_dir + target_dir + metricfilename
-        #    thejson = json.dumps(metric)
-        #    mobj = open(full_filename,'w+')
-        #    mobj.write(thejson)
-        #    mobj.close()
- 
+            with fs.open(full_filename, 'w') as fp:
+                json.dump(tce, fp, cls=JsonCustomEncoder)
 
-        log_obj = open(log_name, 'w+')
-        log_obj.write("Success.")
-        log_obj.close()
+        with fs.open(log_name, 'w') as fp:
+            fp.write("Success!")
 
     except Exception as e:
-        log_obj = open(log_name,'w+')
-        log_obj.write("Failed to create TCEs for TIC %i for Sector %i \n" % (ticid, sector))
-        log_obj.write(str(e))
-        log_obj.close() 
+        with fs.open(log_name,'w') as fp:
+            fp.write("Failed to create TCEs for TIC %i for Sector %i \n" % (ticid, sector))
+            fp.write(str(e))
+            return ["failed", output_file, str(e)]
 
 def load_def_config():
     """
@@ -131,10 +136,8 @@ def load_def_config():
     
     config = dict()
     
+    # Here were the inherited defaults
     config = {
-        "det_window" : 95,  #window used for detrending
-        "noise_window" : 19, #window used for running outlier rejection
-        "n_sigma" : 4.5,  #noise/outlier reject sigma
         "max_period_days" : 11,
         "min_period_days" : 0.8,
         "bls_durs_hrs" : [1,2,4,8,12,14],
@@ -144,32 +147,3 @@ def load_def_config():
         }
     
     return config
-    
-def load_def_vetter():
-    """
-    Load default vetter list of vetters to run.
-    """
-    
-    vetter_list = [vetters.Lpp(),
-                   vetters.OddEven(),
-                   vetters.TransitPhaseCoverage(),
-                   vetters.Sweet()]
-    
-    return vetter_list
-
-def load_def_thresholds():
-    """
-    Load a dictionary of the default threshold values for the vetters.
-
-    Returns
-    -------
-    thresholds : dict
-
-    """
-    thresholds = {'snr' : 1,
-              'norm_lpp' : 2.0,
-              'tp_cover' : 0.6,
-              'oe_sigma' : 3,
-              'sweet' : 3}
-
-    return thresholds
