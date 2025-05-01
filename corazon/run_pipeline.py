@@ -124,6 +124,142 @@ def run_write_one(ticid, s3_location, sector, out_dir, lc_author = 'TGLC', confi
             fp.write(str(e))
             return ["failed", output_file, str(e)]
 
+
+def run_write_one_coiled(ticid, s3_location, sector, 
+                     out_dir, lc_author = 'TGLC', 
+                     config_file = None, run_tag = None, 
+                     local=True, plot=False):
+    """
+    Susan's version of run_write_one.
+    
+    Run the full bls search on a list of ticids stored in a file.
+
+    Parameters
+    ----------
+    ticid : int
+       tess input catalog number
+    s3_location : str
+        string of MAST s3 location of TGLC lightcurve
+    sector : int
+       tess sector of the data being used
+    out_dir : string
+        directory to store all the results. One dir per ticid will be created.
+    lc_author : string
+        Currently using TGLC lightcurves
+    config_file : Dictionary
+        Dictionary of gapping values
+    run_tag : string, optional
+        directory name and string to attach to output file names. 
+    local : bool
+        Specifies the file system to use
+    plot : bool
+        create plot of the pre and post cleaned lightcurve corazon ran on
+    Returns
+    -------
+    None.
+
+    """
+    
+    if run_tag is None:
+        now = datetime.now()
+        run_tag = now.strftime("crz%m%d%Y") + "_"+lc_author
+    
+    if config_file is None:
+        config = load_def_config()
+    else:
+        config = config_file
+    
+    if not local:
+        fs = s3fs.S3FileSystem(anon=False)
+    else:
+        fs = LocalFileSystem()
+        if not os.path.exists(out_dir):
+            os.mkdir(out_dir)
+        try:
+            os.mkdir(out_dir+target_dir)   
+        except FileExistsError:
+            pass
+        except PermissionError as e:
+            log_obj = open(log_name,'w+')
+            log_obj.write("Permission Error on Target Directory ")
+            log_obj.write(e)
+            log_obj.close()
+
+    vetter_list = [vetters.LeoTransitEvents(), vetters.Sweet(), vetters.TransitPhaseCoverage()]
+    
+    
+    target_dir = "/tic%09is%02i/" % (int(ticid), sector)
+    log_name = out_dir + target_dir + "tic%09i-%s.log" % (ticid, run_tag)
+    output_file = out_dir + target_dir + "tic%09i-%s-tcesum.csv" % (ticid, run_tag)
+
+
+    try:
+        
+        lcdata = genlc.tglc_from_S3(s3_location)
+        
+        tce_list, result_strings, metrics_list = pipeline.search_and_vet_one(ticid, sector, 
+                                                                                lcdata, config, 
+                                                                                vetter_list, 
+                                                                                plot=plot)
+        print(result_strings)
+
+        print("I did a search")
+        
+        if plot:
+        
+            plotfilename = "tic%09i-%s-plot.png" % (ticid, 
+                                                    run_tag)
+            #plotfilename = "s3://" + out_dir + target_dir + plotfilename
+            plotfilename = out_dir + target_dir + plotfilename 
+            print(f"Writing to {plotfilename}")
+            with fs.open(plotfilename, 'wb') as fp:
+                plt.savefig(fp, bbox_inches='tight')
+        
+
+
+        with fs.open(output_file, 'w') as fp: 
+            fp.write('Target, BLS_event, Sector, BLS_period, BLS_epoch, BLS_depth, BLS_duration, BLS_snr, LEO_MES, LEO_SHP, LEO_CHI, LEO_med_chases, LEO_mean_chases, LEO_max_SES, LEO_DMM, SWEET_halfperiod, SWEET_period, SWEET_2period, transit_phase_coverage\n')
+            for i,r in enumerate(result_strings):
+                newstr = ", %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n" % (metrics_list[i]['MES'],
+                                            metrics_list[i]['SHP'],
+                                            metrics_list[i]['CHI'],
+                                            metrics_list[i]['med_chases'],
+                                            metrics_list[i]['mean_chases'],
+                                            metrics_list[i]['max_SES'],
+                                            metrics_list[i]['DMM'],
+                                            metrics_list[i]['amp'][2][0], # last array in Sweet (amplitude to uncertainty ratio): half-period
+                                            metrics_list[i]['amp'][2][1], # period
+                                            metrics_list[i]['amp'][2][2], # twice the period
+                                            metrics_list[i]['transit_phase_coverage'])
+                newr = r[:-1]+newstr
+                fp.write(newr)
+        
+        #Write TCEs
+        for tce in tce_list:
+            tcefilename = "tic%09i-%02i-%s.json" % (ticid, 
+                                                    int(tce['event']), 
+                                                    run_tag)
+
+            full_filename = out_dir + target_dir + tcefilename
+            tce['lc_author'] = lc_author
+            with fs.open(full_filename, 'w') as fp:
+                json.dump(tce, fp, cls=JsonCustomEncoder)
+
+        with fs.open(log_name, 'w') as fp:
+            fp.write("Success!")
+        
+        return tce_list
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        with fs.open(log_name,'w') as fp:
+            fp.write("Failed to create TCEs for TIC %i for Sector %i \n" % (ticid, sector))
+            fp.write(str(e))
+            print(output_file)
+            print(str(e))
+        raise e
+
 def load_def_config():
     """
     Get the default configuration dictionary.
