@@ -97,8 +97,8 @@ def run_write_one(ticid, s3_location, sector, out_dir, lc_author = 'TGLC', confi
                                            metrics_list[i]['mean_chases'],
                                            metrics_list[i]['max_SES'],
                                            metrics_list[i]['DMM'],
-                                           metrics_list[i]['amp'][2][0], # last array in Sweet (amplitude to uncertainty ratio): half-period
-                                           metrics_list[i]['amp'][2][1], # period
+                                           metrics_list[i]['amp'][0][2], # last array in Sweet (amplitude to uncertainty ratio): half-period
+                                           metrics_list[i]['amp'][1][2], # period
                                            metrics_list[i]['amp'][2][2], # twice the period
                                            metrics_list[i]['transit_phase_coverage'])
                 newr = r[:-1]+newstr
